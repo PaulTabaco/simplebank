@@ -1,0 +1,10 @@
+// Make Docker
+sudo docker run --name postgres -p 5432:5432 -e POSTGRES_USER=root -e POSTGRES_PASSWORD=mysecretpassword -d postgres:alpine
+
+// Connect to docker -> postgres (from local - password not need)
+sudo docker exec -it postgres psql -U root
+
+
+// Connect to docker -> shell
+sudo docker exec -it postgres /bin/sh
+
