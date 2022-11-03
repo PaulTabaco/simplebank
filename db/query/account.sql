@@ -12,7 +12,7 @@ WHERE id = $1 LIMIT 1;
 -- name: GetAccountForUpdare :one
 SELECT * FROM accounts
 WHERE id = $1 LIMIT 1
-FOR UPDATE;
+FOR NO KEY UPDATE;
 
 -- name: ListAccounts :many
 SELECT * FROM accounts
