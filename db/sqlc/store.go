@@ -58,8 +58,6 @@ type TransferTxResult struct {
 	ToEntry     Entry    `json:"to_entry"`
 }
 
-var txKey = struct{}{}
-
 // TransferTx performs a money transfer from one account to another
 // It creates a new transfer record, add new account entries, and updates account balanse within a single db transaction
 func (store *Store) TransferTx(ctx context.Context, arg TransferTxParams) (TransferTxResult, error) {
@@ -67,9 +65,6 @@ func (store *Store) TransferTx(ctx context.Context, arg TransferTxParams) (Trans
 
 	err := store.execTx(ctx, func(q *Queries) error {
 		var err error
-
-		txName := ctx.Value(txKey)
-		fmt.Println(txName, "create transfer")
 
 		result.Transfer, err = q.CreateTransfer(ctx, CreateTransferParams{
 			FromAccountID: arg.FromAccountID,
@@ -80,7 +75,6 @@ func (store *Store) TransferTx(ctx context.Context, arg TransferTxParams) (Trans
 			return err
 		}
 
-		fmt.Println(txName, "create entry 1 (fromEntry)")
 		result.FromEntry, err = q.CreateEntry(ctx, CreateEntryParams{
 			AccountID: arg.FromAccountID,
 			Amount:    -arg.Amount, // minus amount from
@@ -89,7 +83,6 @@ func (store *Store) TransferTx(ctx context.Context, arg TransferTxParams) (Trans
 			return err
 		}
 
-		fmt.Println(txName, "create entry 2 (ToEntry)")
 		result.ToEntry, err = q.CreateEntry(ctx, CreateEntryParams{
 			AccountID: arg.ToAccountID,
 			Amount:    arg.Amount, // plus amont to
@@ -99,13 +92,11 @@ func (store *Store) TransferTx(ctx context.Context, arg TransferTxParams) (Trans
 		}
 
 		// get account -> update account's balance (with locking and preventing deadlock)
-		fmt.Println(txName, "get account 1 for update)")
 		account1, err := q.GetAccountForUpdare(context.Background(), arg.FromAccountID)
 		if err != nil {
 			return err
 		}
 
-		fmt.Println(txName, "update account 1 balace")
 		result.FromAccount, err = q.UpdateAccount(context.Background(), UpdateAccountParams{
 			ID:      arg.FromAccountID,
 			Balance: account1.Balance - arg.Amount,
@@ -114,13 +105,11 @@ func (store *Store) TransferTx(ctx context.Context, arg TransferTxParams) (Trans
 			return err
 		}
 
-		fmt.Println(txName, "get account 2 for update)")
 		account2, err := q.GetAccountForUpdare(context.Background(), arg.ToAccountID)
 		if err != nil {
 			return err
 		}
 
-		fmt.Println(txName, "update account 2 balace")
 		result.ToAccount, err = q.UpdateAccount(context.Background(), UpdateAccountParams{
 			ID:      arg.ToAccountID,
 			Balance: account2.Balance + arg.Amount,
