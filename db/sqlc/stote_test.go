@@ -27,8 +27,10 @@ func TestTransferTx(t *testing.T) {
 
 	/// start  n go-routins
 	for i := 0; i < n; i++ {
+		txName := fmt.Sprintf("tx - %d", i+1)
 		go func() {
-			result, err := store.TransferTx(context.Background(), TransferTxParams{
+			ctx := context.WithValue(context.Background(), txKey, txName)
+			result, err := store.TransferTx(ctx, TransferTxParams{
 				FromAccountID: account1.ID,
 				ToAccountID:   account2.ID,
 				Amount:        ammount,
@@ -101,6 +103,7 @@ func TestTransferTx(t *testing.T) {
 
 		/// ???? next ??? so if we tranfer few non equal amounts?
 		require.True(t, diff1%ammount == 0) /// amount, 2 * amount, 3 * amount
+
 		k := int(diff1 / ammount)
 		require.True(t, k >= 1 && k <= n)
 		require.NotContains(t, existed, k)
