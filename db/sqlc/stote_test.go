@@ -2,6 +2,7 @@ package db
 
 import (
 	"context"
+	"fmt"
 	"testing"
 
 	"github.com/stretchr/testify/require"
@@ -13,15 +14,18 @@ func TestTransferTx(t *testing.T) {
 	account1 := createRandomAccount(t)
 	account2 := createRandomAccount(t)
 
-	// to check concurrency should
-	// run n concurrent transfer transactions
+	/// TRY LOOK FOR EXPECTED DEADLOOK
+	fmt.Println(">> before transaction: ", account1.Balance, account2.Balance)
+
+	/// to check concurrency should
+	/// run n concurrent transfer transactions
 	n := 5
 	ammount := int64(10)
 
-	errs := make(chan error)               // chanes is designet to connect  concurrent go-routins !!!
-	results := make(chan TransferTxResult) // chanes result used becouse we not whure exact order
+	errs := make(chan error)               /// chanes is designet to connect  concurrent go-routins !!!
+	results := make(chan TransferTxResult) /// chanes result used becouse we not whure exact order
 
-	//start  n go-routins
+	/// start  n go-routins
 	for i := 0; i < n; i++ {
 		go func() {
 			result, err := store.TransferTx(context.Background(), TransferTxParams{
@@ -29,12 +33,14 @@ func TestTransferTx(t *testing.T) {
 				ToAccountID:   account2.ID,
 				Amount:        ammount,
 			})
-			errs <- err       // send an arror to errors chane
-			results <- result // send resalr to resals chane
+			errs <- err       /// send an arror to errors chane
+			results <- result /// send resalr to resals chane
 		}()
 	}
 
-	// check results
+	/// check results
+	existed := make(map[int]bool)
+
 	for i := 0; i < n; i++ {
 
 		err := <-errs
@@ -55,7 +61,7 @@ func TestTransferTx(t *testing.T) {
 		_, err = store.GetTransfer(context.Background(), tranfer.ID) /// check if record realy exists in db
 		require.NoError(t, err)
 
-		/// Check results
+		/// Check entries
 		fromEntry := result.FromEntry
 		require.NotEmpty(t, fromEntry)
 		require.Equal(t, account1.ID, fromEntry.AccountID)
@@ -66,7 +72,6 @@ func TestTransferTx(t *testing.T) {
 		_, err = store.GetEntry(context.Background(), fromEntry.ID)
 		require.NoError(t, err)
 
-		/// Check entry
 		toEntry := result.ToEntry
 		require.NotEmpty(t, toEntry)
 		require.Equal(t, account2.ID, toEntry.AccountID)
@@ -77,8 +82,41 @@ func TestTransferTx(t *testing.T) {
 		_, err = store.GetEntry(context.Background(), toEntry.ID)
 		require.NoError(t, err)
 
-		/// TODO: - check account balance
+		/// Check accounts
+		fromAccount := result.FromAccount
+		require.NotEmpty(t, fromAccount)
+		require.Equal(t, account1.ID, fromAccount.ID)
 
+		toAccount := result.ToAccount
+		require.NotEmpty(t, toAccount)
+		require.Equal(t, account2.ID, toAccount.ID)
+
+		/// Check accounts' balance
+		fmt.Println(">> each tx: ", fromAccount.Balance, toAccount.Balance)
+
+		diff1 := account1.Balance - fromAccount.Balance
+		diff2 := toAccount.Balance - account2.Balance
+		require.Equal(t, diff1, diff2)
+		require.True(t, diff1 > 0)
+
+		/// ???? next ??? so if we tranfer few non equal amounts?
+		require.True(t, diff1%ammount == 0) /// amount, 2 * amount, 3 * amount
+		k := int(diff1 / ammount)
+		require.True(t, k >= 1 && k <= n)
+		require.NotContains(t, existed, k)
+		existed[k] = true
 	}
+
+	/// Check the final updated balance
+	updatedAccount1, err := testQueries.GetAccount(context.Background(), account1.ID) /// ? why not - store.GetAccount(
+	require.NoError(t, err)
+
+	updatedAccount2, err := testQueries.GetAccount(context.Background(), account1.ID) /// ? why not - store.GetAccount(
+	require.NoError(t, err)
+
+	fmt.Println(">> before transaction: ", account1.Balance, account2.Balance)
+
+	require.Equal(t, account1.Balance-int64(n)*ammount, updatedAccount1.Balance)
+	require.Equal(t, account2.Balance+int64(n)*ammount, updatedAccount2.Balance)
 
 }
