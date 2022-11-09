@@ -7,15 +7,21 @@ import (
 )
 
 // Store provides all function to execute db queries and transactions individualy
-type Store struct {
+type Store interface {
+	Querier
+	TransferTx(ctx context.Context, arg TransferTxParams) (TransferTxResult, error)
+}
+
+// SQLStore provides all function to execute SQL queries and transactions individualy
+type SQLStore struct {
 	//*Queries 				- we embed qeries in store and use 	-  store.GetTransfer(...)
 	// queries *Queries  	- otherwise 						-  use store.Queries.Get...()
 	*Queries
 	db *sql.DB
 }
 
-func NewStore(db *sql.DB) *Store {
-	return &Store{
+func NewStore(db *sql.DB) Store {
+	return &SQLStore{
 		db:      db,
 		Queries: New(db),
 	}
@@ -24,7 +30,7 @@ func NewStore(db *sql.DB) *Store {
 // execTx executes a function within a db transaction - if success save this state or rollback
 // to make safe taransaction
 // it internal common for all spesific operations
-func (store *Store) execTx(ctx context.Context, fn func(*Queries) error) error {
+func (store *SQLStore) execTx(ctx context.Context, fn func(*Queries) error) error {
 	tx, err := store.db.BeginTx(ctx, nil) // later will set isolation level -  tore.db.BeginTx(ctx, &sql.TxOptions{Isolation: sql.IsolationLevel(...)})
 	if err != nil {
 		return err
@@ -60,7 +66,7 @@ type TransferTxResult struct {
 
 // TransferTx performs a money transfer from one account to another
 // It creates a new transfer record, add new account entries, and updates account balanse within a single db transaction
-func (store *Store) TransferTx(ctx context.Context, arg TransferTxParams) (TransferTxResult, error) {
+func (store *SQLStore) TransferTx(ctx context.Context, arg TransferTxParams) (TransferTxResult, error) {
 	var result TransferTxResult
 
 	err := store.execTx(ctx, func(q *Queries) error {

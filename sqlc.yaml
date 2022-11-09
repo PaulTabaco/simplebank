@@ -7,6 +7,6 @@ packages:
     engine: "postgresql"
     emit_json_tags: true # include json tags into generated code
     emit_prepared_queries: false #  if true - optimized performence; if false - more simple for now
-    emit_interface: false # for now false, but later true for generate mocks and tests 
+    emit_interface: true # true for generate mocks and tests 
     emit_exact_table_names: false # sqlc - use better manes by own: accounts table  -> Account struct; otherwise Account(s) 
     emit_empty_slices: true # if true - empty slice returns intead of 'nil' 
