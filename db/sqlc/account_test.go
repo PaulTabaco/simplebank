@@ -17,17 +17,17 @@ func createRandomAccount(t *testing.T) Account {
 		Currency: util.RandomCurrency(),
 	}
 
-	accont, err := testQueries.CreateAccount(context.Background(), arg)
+	account, err := testQueries.CreateAccount(context.Background(), arg)
 	require.NoError(t, err)
-	require.NotEmpty(t, accont)
+	require.NotEmpty(t, account)
 
-	require.Equal(t, arg.Owner, accont.Owner)
-	require.Equal(t, arg.Balance, accont.Balance)
-	require.Equal(t, arg.Currency, accont.Currency)
+	require.Equal(t, arg.Owner, account.Owner)
+	require.Equal(t, arg.Balance, account.Balance)
+	require.Equal(t, arg.Currency, account.Currency)
 
-	require.NotZero(t, accont.ID)
-	require.NotZero(t, accont.CreatedAt)
-	return accont
+	require.NotZero(t, account.ID)
+	require.NotZero(t, account.CreatedAt)
+	return account
 }
 
 func TestCreateAccount(t *testing.T) {
