@@ -41,10 +41,8 @@ func authMiddleware(tokenMaker token.Maker) gin.HandlerFunc {
 		}
 		// if all prev is ok, second element is token
 		accessToken := fields[1]
-
 		payload, err := tokenMaker.VerifyToken(accessToken)
 		if err != nil {
-			err := fmt.Errorf("unsupported authorization type %s", athorizationType)
 			ctx.AbortWithStatusJSON(http.StatusUnauthorized, errorResponse(err))
 			return
 		}
