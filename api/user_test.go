@@ -212,17 +212,16 @@ func requireBodyMatchUser(t *testing.T, body *bytes.Buffer, user db.User) {
 	require.Equal(t, user, gotUser)
 }
 
-func randomUser(t *testing.T) (db.User, string) {
-	password := util.RandomString(6)
-	//hashedPassword, err := util.HashPassword(password)
-	_, err := util.HashPassword(password)
+func randomUser(t *testing.T) (user db.User, password string) {
+	password = util.RandomString(6)
+	hashedPassword, err := util.HashPassword(password)
 	require.NoError(t, err)
 
-	user := db.User{
-		Username: util.RandomOwner(),
-		//HashedPassword: hashedPassword,
-		FullName: util.RandomOwner(),
-		Email:    util.RandomEmail(),
+	user = db.User{
+		Username:       util.RandomOwner(),
+		HashedPassword: hashedPassword,
+		FullName:       util.RandomOwner(),
+		Email:          util.RandomEmail(),
 	}
 	return user, password
 }
