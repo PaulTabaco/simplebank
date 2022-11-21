@@ -1,0 +1,25 @@
+ACID Property;
+
+A - Atomicity Атомарность - Либо все операции транзакции завершаются успешно, либо вся база остается неизменной, если хотя бы одна фейлится.
+C - Consistency - DB state must be valid after transaction. All constraints mast be satisfied.
+I - Isolation - Concurrent transaction must not affect each other.
+D - Durability - Data written by a successful transaction must be recorded in persistent storage.
+
+
+I - Isolation
+
+Read Phenomena 
+1) DIRTY READ - Параллельная сессия (Concurrent transaction) смогла прочитать НЕЗАКОМИЧЕННЫЕ изменения данных. При этом нет гарании, что данные не были Отменены -Rollback
+
+2) NON REPEATABLE READ - Когда в рамкой одной транзакции читается одна и таже запись, но приходит разный результат. Например, вследствии того что в промежутке эта запись была изменена в другой транзакции. (тоесть не была заблокирована или сохранена в состоянии сессии)
+
+3) PHANTOM READ - Проблема схожа с предыдущей но касается нескольких записей в БД. Запрос возвращает РАЗНЫЙ НАБОР. Из-за того что в промежутке было добавлено или удалено какое то кол-во записей.
+
+4) SERIALIZATION ANOMALY - невозможно получить результат параллельно закомиченной группы транзакций если мы пытаемся запустить последовательно в любой последовательности без пересечения
+
+
+ === 4 Standart Isolation Levels (by ANSI - American National Standards Institute) ===
+ 1 Read Uncommitted. (Lowest)	Transactions at this level can see data written by other uncommitted transaction.
+ 2 Read Committed.		Only see data written by committed transaction.
+ 3 Repeatable read.		Same read query always returns same result.
+ 4 Serializable. (Highest) 	Concurrent transactions running at this level are guaranted to be able to yeld the same result, no metter they start parallel or in order one by one

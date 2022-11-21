@@ -1,0 +1,98 @@
+=== simplebank account===
+
+** LOGIN USER (create token on success) (no token need)
+ curl -k -v -H 'Content-type: application/json' -H "Accept: application/json" \
+-d '{"username": "Paul", "password": "password"}' \
+http://localhost:8080/users/login
+
+** CREATE USER (no token need)
+curl -k -v -H 'Content-type: application/json' -H "Accept: application/json" \
+-H "Authorization: Bearer " \
+-d '{"username": "Paul", "password": "password", "full_name": "Paul Tabaco", "email": "paul@mail.com"}' \
+http://localhost:8080/users
+
+** CREATE ACCOUNT
+curl -k -v -H 'Content-type: application/json' -H "Accept: application/json" \
+-H "Authorization: Bearer " \
+-d '{"currency":"USD"}' \
+http://localhost:8080/accounts
+
+** GET AN ACCOUNT (by ID)
+curl -k -v -H 'Content-type: application/json' -H "Accept: application/json" \
+-H "Authorization: Bearer " \
+http://localhost:8080/accounts/89
+
+** GET ACCOUNTS (with pagination) LIST ACCOUNTS
+curl -k -v -H 'Content-type: application/json' -H "Accept: application/json" \
+-H "Authorization: Bearer v2.local.SBaePXnwGs3AbCMc4g5rZlfHbpYdlA894JqdAGPDUQc8ao6VsY3-O8Zdrhcf0zHoLb9FENdhLNW4eoXDj8ENr3xG-Gw_5S9wBs48-fpDOcxMFYSglE69XKTkQvnfOl4IT6p1mmLatD4f-F6f9wLYQfccsNfCcUcHpt_m09onYGTpjqtcnwpsH7WnOU4LrCAJwH5Q6C6OABPRzq3JEIov7xJyEQxTwGJ7bk_swidhNcSuqc3eux-iAsU_SZeSyfTfHbnBuaZzI10CXvKe.bnVsbA" \
+"http://localhost:8080/accounts?page_id=1&page_size=5"
+
+** TRANSFER
+curl -k -v -H 'Content-type: application/json' -H "Accept: application/json" \
+-H "Authorization: Bearer v2.local.KZV4Z75pKUROLzGBHINRlIt-lYbhXgBTsGXaA-zW_yHwL4M7Y4QwM6pN7JAOwe3GoqCQMIMh670pkcpgi2M_GMJnyXKidPIQatDKPOsXroKmzKO_3R51SUNr-boRf3fMl8yJGVualfWiOLiRoHyXxg3nC_VgT7hPzYxa50lumnp2o2suRyiZXwRCaOhynu6jjY4lYoxhMJN2I9pXouG9qs5DMq00vnS-ttxh3TsEdlRWqubrwJ-clhkw_nhfAd7iklyUlDqjfOvGo-Dt.bnVsbA" \
+-d '{"from_account_id":86,"to_account_id":89, "amount": 13, "currency": "EUR"}' \
+http://localhost:8080/transfers
+
+
+** GET USER (by username)
+
+
+
+
+
+
+
+
+
+====== //// example from bamking tutorial ====
+
+** VERIFY TOKEN
+
+FOR ONE CUSTOMER
+curl -k -v 	-H 'Content-type: application/json' \
+	 		-H "Accept: application/json" \
+	 		-d '{"username":"2001","password":"abc123"}' \
+	 		-XGET "http://localhost:8080/auth/verify?routeName=GetCustomer&customer_id=2000&account_id=95470&token="
+
+FOR ALL CUSTOMERS
+curl -k -v 	-H 'Content-type: application/json' \
+	 		-H "Accept: application/json" \
+	 		-d '{"username":"2001","password":"abc123"}' \
+	 		-XGET "http://localhost:8080/auth/verify?routeName=GetAllCustomers&token="
+	 		
+** REFRESH TOKEN
+curl -k -v -H 'Content-type: application/json' -H "Accept: application/json" \
+-d '{"access_token":"","refresh_token":""}' \
+"http://localhost:8080/auth/refresh"
+
+
+=== BANKING 8282 ===
+
+** GET ALL CUSTOMERS (OPTIONAL USE - ?Status=active, MAY USE - Content-type: application/xml )
+curl -k -v	-H "Accept: application/json" \
+			-H "Authorization: Bearer " \
+			-XGET http://localhost:8282/customers
+
+curl -k -v	-H "Accept: application/json" \
+			-H "Authorization: Bearer " \
+			-XGET http://localhost:8282/customers?Status=active
+
+** GET CUSTOMER BY ID
+
+curl -k -v	-H "Accept: application/json" \
+			-H "Authorization: Bearer " \
+			-XGET http://localhost:8282/customers/2001
+
+** MAKE TRANSACTION (for customer 2001 and HIS!! account 95471)
+curl -k -v	-H 'Content-type: application/json' \
+			-H "Accept: application/json" \
+			-H "Authorization: Bearer " \
+			-d '{"transaction_type": "deposit", "amount": 100}' \
+			-XPOST http://localhost:8282/customers/2001/account/95471
+
+** MAKE NEW ACCOUNT for customer 2001
+curl -k -v	-H 'Content-type: application/json' \
+			-H "Accept: application/json" \
+			-H "Authorization: Bearer " \
+			-d '{"account_type":"saving","amount":"6000.24"}' \
+			-XPOST http://localhost:8282/customers/2001/account

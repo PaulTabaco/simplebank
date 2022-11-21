@@ -1,0 +1,7 @@
+sudo docker build -t simplebank:latest .
+
+
+sudo docker run --name simplebank -p 8080:8080 -e GIN_MODE=release -e DB_SOURCE="postgresql://root:mysecretpassword@172.17.0.3:5432/simple_bank?sslmode=disable" simplebank:latest
+
+sudo docker run --name simplebank --network simplebank-network -p 8080:8080 -e GIN_MODE=release -e DB_SOURCE="postgresql://root:mysecretpassword@postgres/simple_bank?sslmode=disable" simplebank:latest
+
